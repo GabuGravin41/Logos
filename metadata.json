@@ -1,0 +1,6 @@
+{
+  "name": "Philosophical Debate Voice Analyzer",
+  "description": "Real-time voice capture and transcript analyzer for philosophical debates. Identifies speaker voice signatures, tracks language complexity, rates factual correctness versus empty words, and profiles debate personalities on-the-fly without persistent storage.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
