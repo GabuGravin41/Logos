@@ -106,6 +106,11 @@ export default function App() {
   });
 
   const [activeSpeakerId, setActiveSpeakerId] = useState<string>("sig_alpha");
+  const activeSpeakerIdRef = useRef<string>("sig_alpha");
+  const updateActiveSpeaker = (id: string) => {
+    setActiveSpeakerId(id);
+    activeSpeakerIdRef.current = id;
+  };
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const isRecordingRef = useRef<boolean>(false);
   const [micError, setMicError] = useState<string | null>(null);
@@ -194,7 +199,7 @@ export default function App() {
           // Dynamically map pitch range to active speakers on-the-fly!
           const sig = classifyVoiceSignature(pitch);
           if (sig.id === "sig_alpha" || sig.id === "sig_beta" || sig.id === "sig_gamma") {
-            setActiveSpeakerId(sig.id);
+            updateActiveSpeaker(sig.id);
 
             // Record this frequency in real time for voice profile!
             setSpeakers((prev) => {
@@ -277,7 +282,7 @@ export default function App() {
         
         if (transcriptText && transcriptText.trim()) {
           // Add transcription segment attributed to the current active speaker detected via Pitch or manual override
-          handleAddNewSegment(transcriptText, activeSpeakerId);
+          handleAddNewSegment(transcriptText, activeSpeakerIdRef.current);
         }
       };
 
@@ -306,11 +311,15 @@ export default function App() {
       rec.onend = () => {
         // Automatically restart speech recognition if recording is still active
         if (isRecordingRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch (e) {
-            // Suppress error if already started
-          }
+          setTimeout(() => {
+            if (isRecordingRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                // Suppress error if already started
+              }
+            }
+          }, 100);
         }
       };
 
@@ -465,7 +474,7 @@ export default function App() {
       }
 
       const turn = sample.turns[currentIdx];
-      setActiveSpeakerId(turn.speakerId);
+      updateActiveSpeaker(turn.speakerId);
       
       const newId = `sample_${Date.now()}_${currentIdx}`;
       const newSegment: DebateSegment = {
@@ -1032,7 +1041,7 @@ export default function App() {
                                   {speaker.id === "sig_gamma" && "> 240 Hz"}
                                 </span>
                                 <button
-                                  onClick={() => setActiveSpeakerId(speaker.id)}
+                                  onClick={() => updateActiveSpeaker(speaker.id)}
                                   className={`text-[7px] py-0.5 px-1 rounded font-mono uppercase tracking-wider transition-all cursor-pointer ${
                                     isActive
                                       ? "bg-blue-600/20 text-blue-300 border border-blue-500/30"
@@ -1072,7 +1081,7 @@ export default function App() {
                           return (
                             <button
                               key={sp.id}
-                              onClick={() => setActiveSpeakerId(sp.id)}
+                              onClick={() => updateActiveSpeaker(sp.id)}
                               className={`px-2 py-1 rounded text-[9px] font-mono uppercase tracking-wider border transition-all shrink-0 cursor-pointer ${
                                 isActive
                                   ? "bg-blue-600/15 text-blue-400 border-blue-500/40"
